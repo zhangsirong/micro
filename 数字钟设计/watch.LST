@@ -1,0 +1,218 @@
+A51 MACRO ASSEMBLER  WATCH                                                                03/23/2015 23:31:53 PAGE     1
+
+
+MACRO ASSEMBLER A51 V8.02
+OBJECT MODULE PLACED IN watch.OBJ
+ASSEMBLER INVOKED BY: D:\Keil\C51\BIN\A51.EXE watch.asm SET(SMALL) DEBUG EP
+
+LOC  OBJ            LINE     SOURCE
+
+  0090                 1                                        S_SET BIT P1.0
+  0091                 2     M_SET BIT P1.1
+  0092                 3     H_SET BIT P1.2
+  0093                 4     RESET BIT P1.3
+  0030                 5     SECOND EQU 30H
+  0031                 6     MINUTE EQU 31H
+  0032                 7     HOUR EQU 32H
+  0034                 8     TCNT EQU 34H
+0000                   9                     ORG 00H
+0000 800C             10                     SJMP START
+000B                  11                     ORG 0BH
+000B 02009A           12                     LJMP INT_T0
+000E 90013B           13     START:  MOV DPTR,#TABLE
+0011 753200           14                     MOV HOUR,#0
+0014 753100           15                     MOV MINUTE,#0
+0017 753000           16                     MOV SECOND,#0
+001A 753400           17                     MOV TCNT,#0
+001D 758901           18                     MOV TMOD,#01H
+0020 758C3C           19                     MOV TH0,#(65536-50000)/256                       ;∂® ±50ms
+0023 758AB0           20                     MOV TL0,#(65536-50000)MOD 256
+0026 75A882           21                     MOV IE,#82H
+0029 D28C             22                     SETB TR0
+                      23     ;********************************************************
+                      24     ;≈–∂œ «∑Ò”–øÿ÷∆º¸∞¥œ¬£¨ «ƒƒ“ª∏ˆº¸∞¥œ¬
+002B 1200D2           25     A1:             LCALL DISPLAY
+002E 7590FF           26                     MOV P1,#0FFH
+0031 30900C           27                     JNB S_SET,S1
+0034 30911F           28                     JNB M_SET,S2
+0037 30922F           29                     JNB H_SET,S3
+003A 3093D1           30                     JNB RESET,START
+003D 02002B           31                     LJMP A1
+0040 120145           32     S1:             LCALL DELAY                                             ;»•∂∂∂Ø
+0043 2090E5           33                     JB S_SET,A1
+0046 0530             34                     INC SECOND                                       ;√Î÷µº”“ª
+0048 1200D2           35                     LCALL DISPLAY
+004B E530             36                     MOV   A,SECOND
+004D B43C32           37                     CJNE A,#60,J0                           ;≈–∂œ «∑Òº”µΩ60s
+0050 753000           38                     MOV SECOND,#0
+0053 02005C           39                     LJMP K1
+0056 120145           40     S2:             LCALL DELAY       
+0059 2091CF           41                     JB M_SET,A1
+005C 0531             42     K1:             INC MINUTE                                       ;∑÷÷”÷µº”“ª
+005E E531             43                     MOV   A,MINUTE
+0060 B43C27           44                     CJNE A,#60,J1                           ;≈–∂œ «∑Òº”µΩ60min
+0063 753100           45                     MOV MINUTE,#0
+0066 02006F           46                     LJMP K2
+0069 120145           47     S3:             LCALL DELAY       
+006C 2092BC           48                     JB H_SET,A1
+006F 0532             49     K2:             INC HOUR                                         ;–° ±÷µº”“ª
+0071 E532             50                     MOV   A,HOUR
+0073 B4181C           51                     CJNE A,#24,J2                           ;≈–∂œ «∑Òº”µΩ24h
+0076 753200           52                     MOV HOUR,#0
+0079 753100           53                     MOV MINUTE,#0
+007C 753000           54                     MOV SECOND,#0
+007F 02002B           55                     LJMP A1
+                      56     ;***************************************************************
+                      57     ;µ»¥∞¥º¸Ãß∆
+0082 2090A6           58     J0:             JB S_SET,A1
+A51 MACRO ASSEMBLER  WATCH                                                                03/23/2015 23:31:53 PAGE     2
+
+0085 1200D2           59                     LCALL DISPLAY
+0088 80F8             60                     SJMP    J0
+008A 20919E           61     J1:             JB M_SET,A1
+008D 1200D2           62                     LCALL DISPLAY
+0090 80F8             63                     SJMP    J1
+0092 209296           64     J2:             JB H_SET,A1
+0095 1200D2           65                     LCALL DISPLAY
+0098 80F8             66                     SJMP    J2
+                      67     ;∂® ±∆˜÷–∂œ∑˛ŒÒ≥Ã–Ú£¨∂‘√Î£¨∑÷£¨ ±Ω¯––º∆ 
+009A 758C3C           68     INT_T0: MOV TH0,#(65536-50000)/256
+009D 758AB0           69                     MOV TL0,#(65536-50000)MOD 256
+                      70     
+00A0 0534             71                     INC TCNT 
+00A2 E534             72                     MOV A,TCNT
+00A4 B4142A           73                     CJNE A,#20,RETUNE       ;º∆ ±1s
+                      74     
+00A7 0530             75                     INC SECOND 
+00A9 753400           76                     MOV TCNT,#0
+00AC E530             77                     MOV A,SECOND
+00AE B43C20           78                     CJNE A,#60,RETUNE
+                      79     
+00B1 0531             80                     INC MINUTE
+00B3 753000           81                     MOV SECOND,#0
+00B6 E531             82                     MOV A,MINUTE
+00B8 B43C16           83                     CJNE A,#60,RETUNE
+                      84     
+00BB 0532             85                     INC HOUR
+00BD 753100           86                     MOV MINUTE,#0
+00C0 E532             87                     MOV A,HOUR
+00C2 B4180C           88                     CJNE A,#24,RETUNE
+                      89     
+00C5 753200           90                     MOV HOUR,#0
+00C8 753100           91                     MOV MINUTE,#0
+00CB 753000           92                     MOV SECOND,#0
+00CE 753400           93                     MOV TCNT,#0
+                      94     
+00D1 32               95     RETUNE: RETI
+                      96     ;*****************************************
+                      97     ;œ‘ æøÿ÷∆◊”≥Ã–Ú
+00D2 E530             98     DISPLAY:MOV A,SECOND
+00D4 75F00A           99                     MOV B,#10                                       ;œ‘ æ√Î
+00D7 84              100                     DIV AB
+00D8 C2B6            101                     CLR P3.6
+00DA 93              102                     MOVC A,@A+DPTR
+00DB F580            103                     MOV P0,A
+00DD 120145          104                     LCALL DELAY
+00E0 D2B6            105                     SETB P3.6
+00E2 E5F0            106                     MOV  A,B
+00E4 C2B7            107                     CLR  P3.7
+00E6 93              108                     MOVC A,@A+DPTR
+00E7 F580            109                     MOV  P0,A
+00E9 120145          110                     LCALL DELAY
+00EC D2B7            111                     SETB P3.7
+00EE C2B5            112                     CLR  P3.5
+00F0 758040          113                     MOV  P0,#40H                             ;œ‘ æ∑÷∏Ù∑˚
+00F3 120145          114                     LCALL DELAY
+00F6 D2B5            115                     SETB P3.5
+00F8 E531            116                     MOV A,MINUTE                      ;œ‘ æ∑÷÷”
+00FA 75F00A          117                     MOV B,#10
+00FD 84              118                     DIV AB
+00FE C2B3            119                     CLR P3.3
+0100 93              120                     MOVC A,@A+DPTR
+0101 F580            121                     MOV P0,A
+0103 120145          122                     LCALL DELAY
+0106 D2B3            123                     SETB P3.3
+0108 E5F0            124                     MOV     A,B
+A51 MACRO ASSEMBLER  WATCH                                                                03/23/2015 23:31:53 PAGE     3
+
+010A C2B4            125                     CLR P3.4
+010C 93              126                     MOVC A,@A+DPTR
+010D F580            127                     MOV P0,A
+010F 120145          128                     LCALL DELAY
+0112 D2B4            129                     SETB P3.4
+0114 C2B2            130                     CLR P3.2
+0116 758040          131                     MOV  P0,#40H                             ;œ‘ æ∑÷∏Ù∑˚
+0119 120145          132                     LCALL DELAY
+011C D2B2            133                     SETB P3.2
+011E E532            134                     MOV A,HOUR                        ;œ‘ æ–° ±
+0120 75F00A          135                     MOV B,#10
+0123 84              136                     DIV AB
+0124 C2B0            137                     CLR P3.0
+0126 93              138                     MOVC A,@A+DPTR
+0127 F580            139                     MOV P0,A
+0129 120145          140                     LCALL DELAY
+012C D2B0            141                     SETB P3.0
+012E E5F0            142                     MOV     A,B
+0130 C2B1            143                     CLR P3.1
+0132 93              144                     MOVC A,@A+DPTR
+0133 F580            145                     MOV P0,A
+0135 120145          146                     LCALL DELAY
+0138 D2B1            147                     SETB P3.1
+013A 22              148                     RET
+013B 3F065B4F        149     TABLE:  DB      3FH,06H,5BH,4FH,66H
+013F 66                      
+0140 6D7D077F        150                     DB      6DH,7DH,07H,7FH,6FH
+0144 6F                      
+0145 7E05            151     DELAY:  MOV R6,#5
+0147 7FFA            152     D1:             MOV R7,#250
+0149 DFFE            153                     DJNZ R7,$
+014B DEFA            154                     DJNZ R6,D1
+014D 32              155                     RETI
+                     156                     END
+A51 MACRO ASSEMBLER  WATCH                                                                03/23/2015 23:31:53 PAGE     4
+
+SYMBOL TABLE LISTING
+------ ----- -------
+
+
+N A M E             T Y P E  V A L U E   ATTRIBUTES
+
+A1 . . . . . . . .  C ADDR   002BH   A   
+B. . . . . . . . .  D ADDR   00F0H   A   
+D1 . . . . . . . .  C ADDR   0147H   A   
+DELAY. . . . . . .  C ADDR   0145H   A   
+DISPLAY. . . . . .  C ADDR   00D2H   A   
+HOUR . . . . . . .  N NUMB   0032H   A   
+H_SET. . . . . . .  B ADDR   0090H.2 A   
+IE . . . . . . . .  D ADDR   00A8H   A   
+INT_T0 . . . . . .  C ADDR   009AH   A   
+J0 . . . . . . . .  C ADDR   0082H   A   
+J1 . . . . . . . .  C ADDR   008AH   A   
+J2 . . . . . . . .  C ADDR   0092H   A   
+K1 . . . . . . . .  C ADDR   005CH   A   
+K2 . . . . . . . .  C ADDR   006FH   A   
+MINUTE . . . . . .  N NUMB   0031H   A   
+M_SET. . . . . . .  B ADDR   0090H.1 A   
+P0 . . . . . . . .  D ADDR   0080H   A   
+P1 . . . . . . . .  D ADDR   0090H   A   
+P3 . . . . . . . .  D ADDR   00B0H   A   
+RESET. . . . . . .  B ADDR   0090H.3 A   
+RETUNE . . . . . .  C ADDR   00D1H   A   
+S1 . . . . . . . .  C ADDR   0040H   A   
+S2 . . . . . . . .  C ADDR   0056H   A   
+S3 . . . . . . . .  C ADDR   0069H   A   
+SECOND . . . . . .  N NUMB   0030H   A   
+START. . . . . . .  C ADDR   000EH   A   
+S_SET. . . . . . .  B ADDR   0090H.0 A   
+TABLE. . . . . . .  C ADDR   013BH   A   
+TCNT . . . . . . .  N NUMB   0034H   A   
+TH0. . . . . . . .  D ADDR   008CH   A   
+TL0. . . . . . . .  D ADDR   008AH   A   
+TMOD . . . . . . .  D ADDR   0089H   A   
+TR0. . . . . . . .  B ADDR   0088H.4 A   
+
+
+REGISTER BANK(S) USED: 0 
+
+
+ASSEMBLY COMPLETE.  0 WARNING(S), 0 ERROR(S)

@@ -1,0 +1,156 @@
+				   S_SET BIT P1.0
+M_SET BIT P1.1
+H_SET BIT P1.2
+RESET BIT P1.3
+SECOND EQU 30H
+MINUTE EQU 31H
+HOUR EQU 32H
+TCNT EQU 34H
+		ORG 00H
+		SJMP START
+		ORG 0BH
+		LJMP INT_T0
+START:  MOV DPTR,#TABLE
+		MOV HOUR,#0
+		MOV MINUTE,#0
+		MOV SECOND,#0
+		MOV TCNT,#0
+		MOV TMOD,#01H
+		MOV TH0,#(65536-50000)/256			 ;定时50ms
+		MOV TL0,#(65536-50000)MOD 256
+		MOV IE,#82H
+		SETB TR0
+;********************************************************
+;判断是否有控制键按下，是哪一个键按下
+A1:		LCALL DISPLAY
+		MOV P1,#0FFH
+		JNB S_SET,S1
+		JNB M_SET,S2
+		JNB H_SET,S3
+		JNB RESET,START
+		LJMP A1
+S1:		LCALL DELAY	  					;去抖动
+		JB S_SET,A1
+		INC SECOND					 ;秒值加一
+		LCALL DISPLAY
+		MOV   A,SECOND
+		CJNE A,#60,J0				;判断是否加到60s
+		MOV SECOND,#0
+		LJMP K1
+S2:		LCALL DELAY	  
+		JB M_SET,A1
+K1:		INC MINUTE					 ;分钟值加一
+		MOV   A,MINUTE
+		CJNE A,#60,J1				;判断是否加到60min
+		MOV MINUTE,#0
+		LJMP K2
+S3:		LCALL DELAY	  
+		JB H_SET,A1
+K2:		INC HOUR					 ;小时值加一
+		MOV   A,HOUR
+		CJNE A,#24,J2				;判断是否加到24h
+		MOV HOUR,#0
+		MOV MINUTE,#0
+		MOV SECOND,#0
+		LJMP A1
+;***************************************************************
+;等待按键抬起
+J0:		JB S_SET,A1
+		LCALL DISPLAY
+		SJMP	J0
+J1:		JB M_SET,A1
+		LCALL DISPLAY
+		SJMP	J1
+J2:		JB H_SET,A1
+		LCALL DISPLAY
+		SJMP	J2
+;定时器中断服务程序，对秒，分，时进行计数
+INT_T0:	MOV TH0,#(65536-50000)/256
+		MOV TL0,#(65536-50000)MOD 256
+
+		INC TCNT 
+		MOV A,TCNT
+		CJNE A,#20,RETUNE	;计时1s
+
+		INC SECOND 
+		MOV TCNT,#0
+		MOV A,SECOND
+		CJNE A,#60,RETUNE
+
+		INC MINUTE
+		MOV SECOND,#0
+		MOV A,MINUTE
+		CJNE A,#60,RETUNE
+
+		INC HOUR
+		MOV MINUTE,#0
+		MOV A,HOUR
+		CJNE A,#24,RETUNE
+
+		MOV HOUR,#0
+		MOV MINUTE,#0
+		MOV SECOND,#0
+		MOV TCNT,#0
+
+RETUNE: RETI
+;*****************************************
+;显示控制子程序
+DISPLAY:MOV A,SECOND
+		MOV B,#10					;显示秒
+		DIV AB
+		CLR P3.6
+		MOVC A,@A+DPTR
+		MOV P0,A
+		LCALL DELAY
+		SETB P3.6
+		MOV  A,B
+		CLR  P3.7
+		MOVC A,@A+DPTR
+		MOV  P0,A
+		LCALL DELAY
+		SETB P3.7
+		CLR  P3.5
+		MOV  P0,#40H				 ;显示分隔符
+		LCALL DELAY
+		SETB P3.5
+		MOV A,MINUTE			  ;显示分钟
+		MOV B,#10
+		DIV AB
+		CLR P3.3
+		MOVC A,@A+DPTR
+		MOV P0,A
+		LCALL DELAY
+		SETB P3.3
+		MOV	A,B
+		CLR P3.4
+		MOVC A,@A+DPTR
+		MOV P0,A
+		LCALL DELAY
+		SETB P3.4
+		CLR P3.2
+		MOV  P0,#40H				 ;显示分隔符
+		LCALL DELAY
+		SETB P3.2
+		MOV A,HOUR			  ;显示小时
+		MOV B,#10
+		DIV AB
+		CLR P3.0
+		MOVC A,@A+DPTR
+		MOV P0,A
+		LCALL DELAY
+		SETB P3.0
+		MOV	A,B
+		CLR P3.1
+		MOVC A,@A+DPTR
+		MOV P0,A
+		LCALL DELAY
+		SETB P3.1
+		RET
+TABLE:	DB	3FH,06H,5BH,4FH,66H
+		DB	6DH,7DH,07H,7FH,6FH
+DELAY:	MOV R6,#5
+D1:		MOV R7,#250
+		DJNZ R7,$
+		DJNZ R6,D1
+		RETI
+		END
